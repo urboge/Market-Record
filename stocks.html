@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks — Market Record</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: rgb(29, 29, 29);
+            color: white;
+            font-family: 'Inter', sans-serif;
+        }
+
+        nav {
+            position: fixed;
+            background-color: rgba(29, 29, 29, 0.95);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            top: 0;
+            left: 0;
+            padding: 20px 0;
+            gap: 20px;
+        }
+
+        nav a {
+            color: white;
+            text-decoration: none;
+            font-size: 17px;
+            transition: color 0.2s;
+        }
+
+        nav a:hover {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        h1 {
+            margin-top: 65px;
+            text-align: center;
+            font-size: clamp(28px, 5vw, 50px);
+            padding: 30px 20px 10px;
+            animation-name: heading;
+            animation-duration: 0.5s;
+            animation-iteration-count: 1;
+        }
+
+        @keyframes heading {
+            0% {
+                margin-top: 30px;
+                font-size: clamp(28px, 5vw, 50px);
+            }
+            100%{}
+        }
+
+        .search-bar {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            gap: 10px;
+        }
+
+        .search-bar input {
+            width: 100%;
+            max-width: 400px;
+            padding: 12px 16px;
+            background-color: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        .search-bar input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-bar input:focus {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .search-bar button {
+            padding: 12px 20px;
+            background-color: white;
+            color: rgb(29, 29, 29);
+            border: none;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+
+        .search-bar button:hover {
+            opacity: 0.85;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+        }
+
+        .stocks-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 10px 24px 40px;
+            justify-content: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stock-card {
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 14px;
+            width: 220px;
+            transition: background-color 0.2s;
+        }
+
+        .stock-card:hover {
+            background-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .stock-card .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .stock-card .stock-symbol {
+            font-weight: 600;
+            font-size: 14px;
+            color: white;
+        }
+
+        .stock-card .stock-name {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.35);
+            margin-bottom: 6px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .stock-card .stock-price {
+            font-size: 20px;
+            font-weight: 500;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .stock-card .stock-change {
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+
+        .stock-card .stock-change.positive {
+            color: #4caf50;
+        }
+
+        .stock-card .stock-change.negative {
+            color: #f44336;
+        }
+
+        .stock-card canvas {
+            height: 55px !important;
+            width: 100% !important;
+        }
+
+        .stock-disclaimer {
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.2);
+            margin-top: 6px;
+        }
+
+        #search-result {
+            display: flex;
+            justify-content: center;
+            padding: 0 24px 20px;
+        }
+
+        #search-result .stock-card {
+            width: 280px;
+        }
+
+        .error-msg {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+            text-align: center;
+            padding: 20px;
+        }
+
+        @media (max-width: 481px) {
+            .stock-card {
+                width: 100%;
+            }
+
+            .stocks-grid {
+                padding: 10px 16px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html">home</a>
+        <a href="stocks.html">stocks</a>
+    </nav>
+
+    <h1>Market Record</h1>
+
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Search ticker e.g. AAPL, TSLA, AMZN..." />
+        <button onclick="searchStock()">Search</button>
+    </div>
+
+    <div id="search-result"></div>
+
+    <div class="section-title">Popular Stocks</div>
+
+    <div class="stocks-grid" id="stocks-grid"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const DEFAULT_STOCKS = [
+            { symbol: 'AAPL', name: 'Apple Inc.' },
+            { symbol: 'MSFT', name: 'Microsoft Corp.' },
+            { symbol: 'NVDA', name: 'NVIDIA Corp.' },
+            { symbol: 'GOOGL', name: 'Alphabet Inc.' },
+            { symbol: 'META', name: 'Meta Platforms' },
+            { symbol: 'AMZN', name: 'Amazon.com Inc.' },
+            { symbol: 'TSLA', name: 'Tesla Inc.' },
+            { symbol: 'BRK-B', name: 'Berkshire Hathaway' },
+            { symbol: 'QQQ', name: 'Nasdaq 100 ETF' },
+            { symbol: 'BTC-USD', name: 'Bitcoin' },
+            { symbol: 'GC=F', name: 'Gold Futures' },
+            { symbol: 'CL=F', name: 'Crude Oil Futures' },
+        ];
+
+        async function fetchStockData(symbol) {
+            const proxy = 'https://corsproxy.io/?';
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=1d&range=1mo`;
+            const res = await fetch(proxy + encodeURIComponent(url));
+            const data = await res.json();
+            const result = data.chart.result[0];
+            const prices = result.indicators.quote[0].close.filter(p => p !== null);
+            const meta = result.meta;
+            const latest = prices[prices.length - 1];
+            const previous = prices[prices.length - 2];
+            const change = ((latest - previous) / previous * 100).toFixed(2);
+            const isPositive = parseFloat(change) >= 0;
+            return { prices, latest, change, isPositive, longName: meta.longName || symbol };
+        }
+
+        function buildCard(symbol, name) {
+            const card = document.createElement('div');
+            card.className = 'stock-card';
+            card.innerHTML = `
+        <div class="stock-header">
+            <span class="stock-symbol">${symbol}</span>
+        </div>
+        <div class="stock-name">${name}</div>
+        <div class="stock-price">--</div>
+        <div class="stock-change">--</div>
+        <canvas></canvas>
+        <p class="stock-disclaimer">Data may be delayed.</p>
+    `;
+            return card;
+        }
+
+        async function loadCard(card, symbol) {
+            const priceEl = card.querySelector('.stock-price');
+            const changeEl = card.querySelector('.stock-change');
+            const canvas = card.querySelector('canvas');
+            const nameEl = card.querySelector('.stock-name');
+
+            try {
+                const { prices, latest, change, isPositive, longName } = await fetchStockData(symbol);
+                if (nameEl.textContent === symbol) nameEl.textContent = longName;
+
+                priceEl.textContent = `$${latest.toFixed(2)}`;
+                changeEl.textContent = `${isPositive ? '+' : ''}${change}%`;
+                changeEl.classList.add(isPositive ? 'positive' : 'negative');
+
+                new Chart(canvas, {
+                    type: 'line',
+                    data: {
+                        labels: prices.map((_, i) => i),
+                        datasets: [{
+                            data: prices,
+                            borderColor: isPositive ? '#4caf50' : '#f44336',
+                            borderWidth: 1.5,
+                            pointRadius: 0,
+                            fill: false,
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                        scales: {
+                            x: { display: false },
+                            y: { display: false }
+                        },
+                        layout: { padding: 0 },
+                        animation: { duration: 400 }
+                    }
+                });
+            } catch {
+                priceEl.textContent = 'Unavailable';
+                changeEl.textContent = '';
+            }
+        }
+
+        function initGrid() {
+            const grid = document.getElementById('stocks-grid');
+            DEFAULT_STOCKS.forEach(({ symbol, name }) => {
+                const card = buildCard(symbol, name);
+                grid.appendChild(card);
+                loadCard(card, symbol);
+            });
+        }
+
+        async function searchStock() {
+            const input = document.getElementById('search-input').value.trim().toUpperCase();
+            if (!input) return;
+
+            const container = document.getElementById('search-result');
+            container.innerHTML = `<p class="error-msg">Loading ${input}...</p>`;
+
+            const card = buildCard(input, input);
+            card.style.width = '280px';
+
+            try {
+                await loadCard(card, input);
+                container.innerHTML = '';
+                container.appendChild(card);
+            } catch {
+                container.innerHTML = `<p class="error-msg">Could not find "${input}". Check the ticker symbol.</p>`;
+            }
+        }
+
+        document.getElementById('search-input').addEventListener('keydown', e => {
+            if (e.key === 'Enter') searchStock();
+        });
+
+        initGrid();
+    </script>
+</body>
+
+</html>
