@@ -1,8 +1,39 @@
+// Helper function to calculate and format "days ago"
+function formatDaysAgo(dateString) {
+    const newsDate = new Date(dateString);
+    const today = new Date();
+    
+    // Reset hours to handle accurate calendar-day calculations
+    newsDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    
+    // Calculate the difference in milliseconds and convert to days
+    const diffTime = today - newsDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 0) return 'Future date'; // Fallback just in case
+    return `${diffDays} days ago`;
+}
+
 async function loadStockWidget(widget) {
     const symbol = widget.dataset.symbol;
     const priceEl = widget.querySelector('.stock-price');
     const changeEl = widget.querySelector('.stock-change');
     const canvas = widget.querySelector('.stock-chart');
+
+    // --- NEW: Find and update the time element ---
+    // Finds the <time> tag inside the same parent container/link as the widget
+    const articleContainer = widget.closest('article');
+    if (articleContainer) {
+        const timeEl = articleContainer.querySelector('time');
+        if (timeEl && timeEl.getAttribute('datetime')) {
+            const dateStr = timeEl.getAttribute('datetime');
+            timeEl.textContent = formatDaysAgo(dateStr);
+        }
+    }
+    // ---------------------------------------------
 
     try {
         const proxy = 'https://corsproxy.io/?';
